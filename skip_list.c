@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_LEVEL 4
-#define PROBABILITY 0.5
+#define INT_MAX    2147483647
+#define MAX_LEVEL 10
+#define PROBABILITY RAND_MAX/2
 
 typedef struct node
 {
 	int key;
 	int val;
 	int level;
-    struct node **forward;
+    struct node *forward[MAX_LEVEL];
 } Node;
 
 typedef struct skiplist{
@@ -28,7 +29,7 @@ static void skiplist_dump(Skiplist *list);
 
 Node * makeNode(int level, int key, int value)
 {
-    Node * n = (Node *) malloc(sizeof(Node));
+    Node * n = malloc(sizeof(Node) + sizeof(Node)*level);
     if (NULL == n)
     {
         fprintf(stderr,"Not enough memory!\n");
@@ -37,28 +38,35 @@ Node * makeNode(int level, int key, int value)
     n->val = value;
     n->key = key;
     n->level = level;
-    n->forward = NULL;
+    n->forward[0] = NULL;
     return n;
 }
 
 Skiplist* newSkiplist(){
+	
 	int i;
 
-	Skiplist* list = (Skiplist *)calloc(1,sizeof(Skiplist));
+	Skiplist* list = malloc(sizeof(Skiplist));
+	if (NULL == list)
+    {
+        fprintf(stderr,"Not enough memory!\n");
+        exit(1);
+    }
 	
-	list->level = 0;
-	list->header = (Node*)calloc(1,(MAX_LEVEL+1)*sizeof(Node));
+	list->header = malloc(sizeof(Node) + (MAX_LEVEL)*sizeof(Node));
+	if (NULL == list->header)
+    {
+        fprintf(stderr,"Not enough memory!\n");
+        exit(1);
+    }
 	
-	list->header->forward = (Node**)calloc(1,(MAX_LEVEL+1)*sizeof(Node*));
+    list->header->key = INT_MAX;
+    list->header->val = 0;
 
-
-	list->header->val = 0;
-    list->header->key = 0;
-    list->header->level = 0;
-	for(i = 0; i<MAX_LEVEL-1; i++){
+	for(i = 0; i<=MAX_LEVEL; i++){
 		list->header->forward[i] = NULL;
-	
 	}
+	list->level = 0;
   	return list;
 }
 
@@ -81,7 +89,7 @@ Node* search(Skiplist* list, int key) {
 }
 
 int randomLevel(float p){
-	int level = 0;
+	int level = 1;
 	while(rand() < p && level < MAX_LEVEL){
 		level = level + 1;
 	}
@@ -93,27 +101,26 @@ void insert(Skiplist* list, int key, int value){
 	Node* tmp;
 	int i;
 	int level;
-	Node* update[MAX_LEVEL];
+	Node* update[MAX_LEVEL-1];
 
 	tmp = list->header;
-	/* On parcourt la liste à partir du plus haut niveau et
-	 on descend quand on trouve une clé 
-	supérieur ou égal à la clé recherchée)*/
+	/* On parcourt la liste à partir du plus haut niveau et on descend quand on trouve 
+	une clé supérieur ou égal à la clé recherchée)*/
 	for(i = (list->level)-1; i>=0; i--){
-		printf("%d, %d\n", list->level,i );
-		while( tmp->forward[i]->key < key) {
+		while(tmp->forward[i] != NULL && tmp->forward[i]->key < key) {
 			tmp = tmp->forward[i];
 		}
 		update[i] = tmp;
 	}
 	tmp = tmp->forward[0];
-	if(tmp->key == key) {
+	if(tmp != NULL && tmp->key == key) {
 		tmp->val = value;
 	}
-	/*else {
+	else {
 		level = randomLevel(PROBABILITY);
+		printf("level:%d\n", level);
 		if( level > list->level) {
-			for( i = (list->level)-1; i <=level; i++) {
+			for( i = (list->level); i <=level; i++) {
 				update[i] = list->header;
 			}
 			list->level = level;
@@ -123,35 +130,67 @@ void insert(Skiplist* list, int key, int value){
 			tmp->forward[i] = update[i]->forward[i];
 			update[i]->forward[i] = tmp;
 		}
-	}*/
+	}
 }
 
 static void skiplist_dump(Skiplist *list)
 {
-    Node *x = list->header;/*
-    while (x && x->forward[1] != list->header) {
-        printf("%d[%d]->", x->forward[1]->key, x->forward[1]->val);
-        x = x->forward[1];
+    Node *x = list->header;
+
+    while (x && x->forward[0] != list->header) {
+    	if(x->forward[0]) {
+    		printf("%d[%d]->", x->forward[0]->key, x->forward[0]->val);
+    	}
+    	x = x->forward[0];
     }
-    printf("NIL\n");*/
+    printf("NIL\n");
+}
+
+
+void delete(Skiplist* list, int key){
+	int i;
+	int level;
+	Node *tmp = list->header;
+	Node* update[MAX_LEVEL-1];
+
+	for( i = (list->level)-1; i>=0; i--){
+		while(tmp->forward[i] != NULL && tmp->forward[i]->key < key) {
+			tmp = tmp->forward[i];
+		}
+		update[i] = tmp;
+	}
+	tmp = tmp->forward[0];
+	level = list->level;
+	if(tmp->key && tmp->key == key){
+		for(i = 0; i < level; i++){
+			if((update[i]->forward[i]) != tmp) break;
+			update[i]->forward[i] = tmp->forward[i];
+		}
+		free(tmp);
+		while(level > 0 && list->header->forward[level-1] == NULL){
+			list->level = level-1;
+			level = level-1;
+		}
+	}
 }
 
 int main(int argc,char* argv[]){
-	printf("test\n");
 
 	Skiplist* skiplist = newSkiplist();
 
-	int arr[] = {1,2,3,4,5,6,7};
+	int arr[] = {1,7,3,5,6,2};
 	int i;
 
 	printf("Insert:--------------------\n");
     for (i = 0; i < sizeof(arr)/sizeof(arr[0]); i++) {
-    	printf("insert\n");
+    	printf("insert %d\n", arr[i]);
         insert(skiplist, arr[i], arr[i]);
     }
-/*
-    skiplist_dump(skiplist);*/
+    insert(skiplist,4,4);
+    skiplist_dump(skiplist);
 
+    delete(skiplist, 5);
+    skiplist_dump(skiplist);
 
 	return 0;
 }
