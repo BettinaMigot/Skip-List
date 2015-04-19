@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define INT_MAX    2147483647
-#define MAX_LEVEL 10
+#define MAX_LEVEL 4
 #define PROBABILITY RAND_MAX/2
 
 typedef struct node
@@ -89,7 +90,8 @@ Node* search(Skiplist* list, int key) {
 }
 
 int randomLevel(float p){
-	int level = 1;
+	int level = 0;
+	srand(time(NULL));
 	while(rand() < p && level < MAX_LEVEL){
 		level = level + 1;
 	}
