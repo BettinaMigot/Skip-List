@@ -3,7 +3,7 @@
 #include <time.h>
 
 #define INT_MAX    2147483647
-#define MAX_LEVEL 4
+#define MAX_LEVEL 10
 #define PROBABILITY RAND_MAX/2
 
 typedef struct node
@@ -90,8 +90,7 @@ Node* search(Skiplist* list, int key) {
 }
 
 int randomLevel(float p){
-	int level = 0;
-	srand(time(NULL));
+	int level = 1;
 	while(rand() < p && level < MAX_LEVEL){
 		level = level + 1;
 	}
@@ -177,6 +176,8 @@ void delete(Skiplist* list, int key){
 }
 
 int main(int argc,char* argv[]){
+
+	srand((int)time(NULL));
 
 	Skiplist* skiplist = newSkiplist();
 
