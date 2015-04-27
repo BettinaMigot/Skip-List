@@ -3,7 +3,7 @@
 #include <time.h>
 
 #define INT_MAX    2147483647
-#define MAX_LEVEL 10
+#define MAX_LEVEL 4
 #define PROBABILITY RAND_MAX/2
 
 typedef struct node
@@ -26,6 +26,7 @@ Node* search(Skiplist* list, int key);
 int randomLevel(float p);
 void insert(Skiplist* list, int key, int value);
 static void skiplist_dump(Skiplist *list);
+void PrintSkipList(Skiplist * L);
 
 
 Node * makeNode(int level, int key, int value)
@@ -107,7 +108,8 @@ void insert(Skiplist* list, int key, int value){
 	tmp = list->header;
 	/* On parcourt la liste à partir du plus haut niveau et on descend quand on trouve 
 	une clé supérieur ou égal à la clé recherchée)*/
-	for(i = (list->level)-1; i>=0; i--){
+	for(i = (list->level)-1; i>=0; i--)
+		{
 		while(tmp->forward[i] != NULL && tmp->forward[i]->key < key) {
 			tmp = tmp->forward[i];
 		}
@@ -121,7 +123,7 @@ void insert(Skiplist* list, int key, int value){
 		level = randomLevel(PROBABILITY);
 		printf("level:%d\n", level);
 		if( level > list->level) {
-			for( i = (list->level); i <=level; i++) {
+			for( i = (list->level); i <level; i++) {
 				update[i] = list->header;
 			}
 			list->level = level;
@@ -178,6 +180,7 @@ void delete(Skiplist* list, int key){
 int main(int argc,char* argv[]){
 
 	srand((int)time(NULL));
+	rand();
 
 	Skiplist* skiplist = newSkiplist();
 
@@ -186,14 +189,17 @@ int main(int argc,char* argv[]){
 
 	printf("Insert:--------------------\n");
     for (i = 0; i < sizeof(arr)/sizeof(arr[0]); i++) {
+    	       
     	printf("insert %d\n", arr[i]);
         insert(skiplist, arr[i], arr[i]);
+
+
     }
     insert(skiplist,4,4);
-    skiplist_dump(skiplist);
+   	skiplist_dump(skiplist);
 
     delete(skiplist, 5);
-    skiplist_dump(skiplist);
+  	skiplist_dump(skiplist);
 
 	return 0;
 }
