@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define INT_MAX    2147483647
 #define MAX_LEVEL 4
 #define PROBABILITY RAND_MAX/2
+#define TAILLE_MAX 100 // Tableau de taille 100 pour lire le fichier
 
 typedef struct node
 {
@@ -26,6 +28,7 @@ Node* search(Skiplist* list, int key);
 int randomLevel(float p);
 void insert(Skiplist* list, int key, int value);
 void printSkipList(Skiplist * list);
+int stringToInt(char []);
 
 
 Node * makeNode(int level, int key, int value)
@@ -207,33 +210,124 @@ void delete(Skiplist* list, int key)
 		}
 	}
 }
+ 
+int stringToInt(char a[]) {
+  int c, sign, offset, n;
+ 
+  if (a[0] == '-') {  // Handle negative integers
+    sign = -1;
+  }
+ 
+  if (sign == -1) {  // Set starting position to convert
+    offset = 1;
+  }
+  else {
+    offset = 0;
+  }
+ 
+  n = 0;
+ 
+  for (c = offset; a[c] != '\0'; c++) {
+    n = n * 10 + a[c] - '0';
+  }
+ 
+  if (sign == -1) {
+    n = -n;
+  }
+ 
+  return n;
+}
 
-int main(int argc,char* argv[])
+int main(int argc, char* argv[])
 {
+	FILE* fichier = NULL;
+	char chaine[TAILLE_MAX] = "";
 
 	srand((int)time(NULL));
 
 	Skiplist* skiplist = newSkiplist();
 
-	int arr[] = {1,7,3,5,6,2};
-	int i;
-
-    for (i = 0; i < sizeof(arr)/sizeof(arr[0]); i++)
+	int* arr = malloc(sizeof(int));
+	if (NULL == arr)
     {
-        insert(skiplist, arr[i], arr[i]);
+        fprintf(stderr,"Not enough memory!\n");
+        exit(1);
     }
 
-    printf("\nPrint List \n");
-   	printSkipList(skiplist);
+	const char s[2] = ",";/* Caractère délimiteur */
 
-   	printf("\nInsert in List \n");
-    insert(skiplist, 4, 4);
-    insert(skiplist, 8, 8);
-   	printSkipList(skiplist);
+	/*Pour découper la chaine*/
+	char *str1,  *token;
+    char *saveptr1;
+    int j, n = 0, i;
 
-   	printf("\nDelete in List\n");
-    delete(skiplist, 5);
-  	printSkipList(skiplist);
+    fichier = fopen("list.txt", "r+");
 
-	return 0;
+    if (fichier != NULL)
+    {
+		/* On lit maximum TAILLE_MAX caractères du fichier, on stocke le tout dans "chaine"*/
+		fgets(chaine, TAILLE_MAX, fichier);
+		printf("%s \n", chaine);
+
+		/* Séparation des valeurs + mise dans un tableau avec la fonction strtok_r qui fonctionne bizarrement
+		avec plein de pointeurs */
+
+	    for (j = 0, str1 = chaine; ; j++, str1 = NULL) {
+	        token = strtok_r(str1, ",", &saveptr1);
+	        if (token == NULL)
+	            break;
+	        /*printf("%d: %s\n", j, token);*/
+
+	            /*Pour mettre dans le tableau j'utilise la fonction stringToInt que j'ai copié au dessus
+	            je l'ai trouvée sur internet, je trouvais rien de correct en fonction des librairies "standard"*/
+	            arr[j] = stringToInt(token);
+	            printf("arr[%d]=%d, ", j, arr[j]);
+
+	    }
+	    printf("\n");
+
+		/* Fermeture du fichier */
+		fclose(fichier); 
+
+		printf("taille tableau : %d\n", j);
+
+		printf("arr[0]=%d ,",arr[0]);
+		printf("arr[1]=%d ,",arr[1]);
+		printf("arr[2]=%d ,",arr[2]);
+		printf("arr[3]=%d ,",arr[3]);
+		printf("arr[4]=%d ,",arr[4]);
+		printf("arr[5]=%d",arr[5]);
+		printf("\n");
+
+	    for (i = 0; i < j; i++)
+	    {
+	    	printf("arr[0]=%d ,",arr[0]);
+			printf("arr[1]=%d ,",arr[1]);
+			printf("arr[2]=%d ,",arr[2]);
+			printf("arr[3]=%d ,",arr[3]);
+			printf("arr[4]=%d ,",arr[4]);
+			printf("arr[5]=%d",arr[5]);
+	        printf("\nValeur insérée : arr[%d]=%d\n", i, arr[i]);
+	        insert(skiplist, arr[i], arr[i]);
+	    }
+
+	    printf("\nPrint List \n");
+	   	printSkipList(skiplist);
+
+	   	/*printf("\nInsert in List \n");
+	    insert(skiplist, 5, 5);
+	    insert(skiplist, 8, 8);
+	   	printSkipList(skiplist);
+
+	   	printf("\nDelete in List\n");
+	    delete(skiplist, 5);
+	  	printSkipList(skiplist);*/
+    }
+    else
+    {
+        /* Si l'ouverture du fichier n'a pas fonctionné*/
+        printf("Impossible d'ouvrir le fichier list.txt");
+    }
+
+    return 0;
 }
