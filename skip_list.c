@@ -24,12 +24,11 @@ typedef struct skiplist{
 
 Node * makeNode(int level, int key, int value);
 Skiplist* newSkiplist();
+void initializeFromFile(Skiplist* skiplist, char* f);
 Node* search(Skiplist* list, int key);
 int randomLevel(float p);
 void insert(Skiplist* list, int key, int value);
 void printSkipList(Skiplist * list);
-int stringToInt(char []);
-
 
 Node * makeNode(int level, int key, int value)
 {
@@ -77,6 +76,8 @@ Skiplist* newSkiplist()
 }
 
 
+
+
 Node* search(Skiplist* list, int key)
 {
 	Node* tmp;
@@ -85,11 +86,11 @@ Node* search(Skiplist* list, int key)
 	tmp = list->header;
 	for(i = (list->level)-1; i>=0; i--)
 	{
-		while( tmp->forward[i]->key < key )
+		while(tmp->forward[i] != NULL && tmp->forward[i]->key < key )
 			tmp = tmp->forward[i];
 	}
 	tmp = tmp->forward[0];
-	if(tmp->key == key)
+	if(tmp != NULL && tmp->key == key)
 	{
 		return tmp;
 	}
@@ -154,7 +155,9 @@ void printSkipList(Skiplist *list)
  	printf("\n");
  	Node* x1;
  	Node* x2;
-	for (int i = list->level-1; i >= 0; i--)
+ 	int i;
+
+	for (i = list->level-1; i >= 0; i--)
 	{	printf("[HEAD]");
 		x1 = list->header->forward[i];
 		x2 = list->header->forward[0];
@@ -210,42 +213,13 @@ void delete(Skiplist* list, int key)
 		}
 	}
 }
- 
-int stringToInt(char a[]) {
-  int c, sign, offset, n;
- 
-  if (a[0] == '-') {  // Handle negative integers
-    sign = -1;
-  }
- 
-  if (sign == -1) {  // Set starting position to convert
-    offset = 1;
-  }
-  else {
-    offset = 0;
-  }
- 
-  n = 0;
- 
-  for (c = offset; a[c] != '\0'; c++) {
-    n = n * 10 + a[c] - '0';
-  }
- 
-  if (sign == -1) {
-    n = -n;
-  }
- 
-  return n;
-}
 
-int main(int argc, char* argv[])
-{
+void initializeFromFile(Skiplist* skiplist, char* f){
+
 	FILE* fichier = NULL;
 	char chaine[TAILLE_MAX] = "";
-
-	srand((int)time(NULL));
-
-	Skiplist* skiplist = newSkiplist();
+	int i=0, j = 0;
+	char* str1;
 
 	int* arr = malloc(sizeof(int));
 	if (NULL == arr)
@@ -253,81 +227,66 @@ int main(int argc, char* argv[])
         fprintf(stderr,"Not enough memory!\n");
         exit(1);
     }
-
-	const char s[2] = ",";/* Caractère délimiteur */
-
-	/*Pour découper la chaine*/
-	char *str1,  *token;
-    char *saveptr1;
-    int j, n = 0, i;
-
-    fichier = fopen("list.txt", "r+");
-
+    fichier = fopen(f, "r+");
     if (fichier != NULL)
     {
 		/* On lit maximum TAILLE_MAX caractères du fichier, on stocke le tout dans "chaine"*/
 		fgets(chaine, TAILLE_MAX, fichier);
-		printf("%s \n", chaine);
+	
+		printf("chaine: %s\n", chaine);
 
-		/* Séparation des valeurs + mise dans un tableau avec la fonction strtok_r qui fonctionne bizarrement
-		avec plein de pointeurs */
+		str1 = strtok(chaine,",");
+		printf("str1: %s\n", str1 );
+		while(str1 != NULL) {
+			arr[i++] = atoi(str1);
+			j++;
 
-	    for (j = 0, str1 = chaine; ; j++, str1 = NULL) {
-	        token = strtok_r(str1, ",", &saveptr1);
-	        if (token == NULL)
-	            break;
-	        /*printf("%d: %s\n", j, token);*/
+			printf("arr:%d\n",atoi(str1));
+			str1 = strtok(NULL, ",");
 
-	            /*Pour mettre dans le tableau j'utilise la fonction stringToInt que j'ai copié au dessus
-	            je l'ai trouvée sur internet, je trouvais rien de correct en fonction des librairies "standard"*/
-	            arr[j] = stringToInt(token);
-	            printf("arr[%d]=%d, ", j, arr[j]);
-
-	    }
-	    printf("\n");
-
-		/* Fermeture du fichier */
+			printf("str1: %s\n", str1 );
+		}
+		for(i=0;i<6;i++){
+			printf("%d\n",arr[i] );
+		}
 		fclose(fichier); 
-
-		printf("taille tableau : %d\n", j);
-
-		printf("arr[0]=%d ,",arr[0]);
-		printf("arr[1]=%d ,",arr[1]);
-		printf("arr[2]=%d ,",arr[2]);
-		printf("arr[3]=%d ,",arr[3]);
-		printf("arr[4]=%d ,",arr[4]);
-		printf("arr[5]=%d",arr[5]);
-		printf("\n");
-
-	    for (i = 0; i < j; i++)
+		for (i = 0; i < j; i++)
 	    {
-	    	printf("arr[0]=%d ,",arr[0]);
-			printf("arr[1]=%d ,",arr[1]);
-			printf("arr[2]=%d ,",arr[2]);
-			printf("arr[3]=%d ,",arr[3]);
-			printf("arr[4]=%d ,",arr[4]);
-			printf("arr[5]=%d",arr[5]);
-	        printf("\nValeur insérée : arr[%d]=%d\n", i, arr[i]);
 	        insert(skiplist, arr[i], arr[i]);
 	    }
-
-	    printf("\nPrint List \n");
-	   	printSkipList(skiplist);
-
-	   	/*printf("\nInsert in List \n");
-	    insert(skiplist, 5, 5);
-	    insert(skiplist, 8, 8);
-	   	printSkipList(skiplist);
-
-	   	printf("\nDelete in List\n");
-	    delete(skiplist, 5);
-	  	printSkipList(skiplist);*/
-    }
-    else
+	}
+	else
     {
         /* Si l'ouverture du fichier n'a pas fonctionné*/
         printf("Impossible d'ouvrir le fichier list.txt");
     }
+}
+
+int main(int argc, char* argv[])
+{
+
+	char* fichier = argv[1];
+	srand((int)time(NULL));
+
+	Skiplist* skiplist = newSkiplist();
+
+	/*initialisation de la skiplist selon un fichier passer en paramètre*/
+	initializeFromFile(skiplist, fichier);
+    printf("\nPrint List \n");
+   	printSkipList(skiplist);
+
+   	/*test de search*/
+	printf("Value searched: %d \n", search(skiplist,4)->val);
+
+	/*test d'insert*/
+	printf("\nInsertion of 8:\n");
+	insert(skiplist, 8, 8);
+	printSkipList(skiplist);
+
+	/*test de delete*/
+   	printf("\nDelete in List of 2\n");
+    delete(skiplist, 2);
+  	printSkipList(skiplist);
 
     return 0;
 }
