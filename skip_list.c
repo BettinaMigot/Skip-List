@@ -100,6 +100,7 @@ Node* search(Skiplist* list, int key)
 int randomLevel(float p)
 {
 	int level = 1;
+	printf("p:%f\n",p );
 	while(rand() < p && level < MAX_LEVEL-1)
 	{
 		level = level + 1;
@@ -157,8 +158,8 @@ void printSkipList(Skiplist *list)
  	Node* x2;
  	int i;
 
-	for (i = list->level-1; i >= 0; i--)
-	{	printf("[HEAD]");
+	for (i = list->level-1; i >= 0; i--){
+		printf("[HEAD]");
 		x1 = list->header->forward[i];
 		x2 = list->header->forward[0];
 		while(x1 != NULL)
@@ -232,24 +233,21 @@ void initializeFromFile(Skiplist* skiplist, char* f){
     {
 		/* On lit maximum TAILLE_MAX caractères du fichier, on stocke le tout dans "chaine"*/
 		fgets(chaine, TAILLE_MAX, fichier);
-	
-		printf("chaine: %s\n", chaine);
 
 		str1 = strtok(chaine,",");
-		printf("str1: %s\n", str1 );
+
 		while(str1 != NULL) {
 			arr[i++] = atoi(str1);
 			j++;
-
-			printf("arr:%d\n",atoi(str1));
 			str1 = strtok(NULL, ",");
+		}
+		/*for(i=0;i<8;i++){
 
-			printf("str1: %s\n", str1 );
-		}
-		for(i=0;i<6;i++){
 			printf("%d\n",arr[i] );
-		}
-		fclose(fichier); 
+		}*/
+
+		/*fclose(fichier); */
+
 		for (i = 0; i < j; i++)
 	    {
 	        insert(skiplist, arr[i], arr[i]);
@@ -266,6 +264,11 @@ int main(int argc, char* argv[])
 {
 
 	char* fichier = argv[1];
+
+	clock_t begin, end;
+	double time_spent;
+
+
 	srand((int)time(NULL));
 
 	Skiplist* skiplist = newSkiplist();
@@ -276,17 +279,49 @@ int main(int argc, char* argv[])
    	printSkipList(skiplist);
 
    	/*test de search*/
+	begin = clock();
 	printf("Value searched: %d \n", search(skiplist,4)->val);
+	end = clock();
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("execution time: %f sec.\n",time_spent);
 
 	/*test d'insert*/
 	printf("\nInsertion of 8:\n");
+	begin = clock();
 	insert(skiplist, 8, 8);
+	end = clock();
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("execution time: %f sec.\n",time_spent);
 	printSkipList(skiplist);
+
 
 	/*test de delete*/
    	printf("\nDelete in List of 2\n");
+	begin = clock();
     delete(skiplist, 2);
-  	printSkipList(skiplist);
+	end = clock();
+	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("execution time: %f sec.\n",time_spent);
+	printSkipList(skiplist);
 
     return 0;
 }
+
+/* Answer to the last question : 
+Check how different values of p affect efficiency of search, insert, delete.
+
+We calculate the execution time with different values of p
+
+- p = RAND_MAX/2 : 
+execution time of 
+	- search : 0.000005 sec
+	- insert : 0.000001 sec
+	- delete : 0.000002 sec
+
+- p = RAND_MAX/4 : 
+execution time of 
+	- search : 0.000005 sec
+	- insert : 0.000001 sec
+	- delete : 0.000002 sec
+
+*/
