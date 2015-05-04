@@ -33,7 +33,7 @@ void freeListR(Node ** head);
 
 Node * makeNode(int level, int key, int value)
 {
-    Node * n = malloc(sizeof(Node) + sizeof(Node)*level);
+    Node * n = calloc(1, sizeof(Node) + sizeof(Node)*level);
     if (NULL == n)
     {
         fprintf(stderr,"Not enough memory!\n");
@@ -51,14 +51,14 @@ Skiplist* newSkiplist()
 	
 	int i;
 
-	Skiplist* list = malloc(sizeof(Skiplist));
+	Skiplist* list = calloc(1, sizeof(Skiplist));
 	if (NULL == list)
     {
         fprintf(stderr,"Not enough memory!\n");
         exit(1);
     }
 	
-	list->header = malloc(sizeof(Node) + (MAX_LEVEL)*sizeof(Node));
+	list->header = calloc(1, sizeof(Node) + (MAX_LEVEL)*sizeof(Node));
 	if (NULL == list->header)
     {
         fprintf(stderr,"Not enough memory!\n");
@@ -342,5 +342,10 @@ execution time of
 	- search : 0.000005 sec
 	- insert : 0.000001 sec
 	- delete : 0.000002 sec
+
+More p is small, less the skiplist will have levels.
+It is less efficient if :
+	the list is short and there is a lot of levels
+	the list is long and there is not a lot of levels
 
 */
