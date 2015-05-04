@@ -29,6 +29,7 @@ Node* search(Skiplist* list, int key);
 int randomLevel(float p);
 void insert(Skiplist* list, int key, int value);
 void printSkipList(Skiplist * list);
+void freeListR(Node ** head);
 
 Node * makeNode(int level, int key, int value)
 {
@@ -260,6 +261,22 @@ void initializeFromFile(Skiplist* skiplist, char* f){
     }
 }
 
+void freeListR(Node ** head)
+{
+    /* Empty list */
+    if (*head == NULL)
+    {
+        return;
+    }
+
+    if ((*head)->forward[0] != NULL)
+    {
+        freeListR(&(*head)->forward[0]);
+    }
+    free(*head);
+    *head = NULL;
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -303,6 +320,8 @@ int main(int argc, char* argv[])
 	time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
     printf("execution time: %f sec.\n",time_spent);
 	printSkipList(skiplist);
+
+	freeListR(&skiplist->header);
 
     return 0;
 }
