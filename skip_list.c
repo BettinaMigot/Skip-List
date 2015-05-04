@@ -34,11 +34,6 @@ void freeListR(Node ** head);
 Node * makeNode(int level, int key, int value)
 {
     Node * n = calloc(1, sizeof(Node) + sizeof(Node)*level);
-    if (NULL == n)
-    {
-        fprintf(stderr,"Not enough memory!\n");
-        exit(1);
-    }
     n->val = value;
     n->key = key;
     n->level = level;
@@ -52,19 +47,9 @@ Skiplist* newSkiplist()
 	int i;
 
 	Skiplist* list = calloc(1, sizeof(Skiplist));
-	if (NULL == list)
-    {
-        fprintf(stderr,"Not enough memory!\n");
-        exit(1);
-    }
 	
 	list->header = calloc(1, sizeof(Node) + (MAX_LEVEL)*sizeof(Node));
-	if (NULL == list->header)
-    {
-        fprintf(stderr,"Not enough memory!\n");
-        exit(1);
-    }
-	
+
     list->header->key = INT_MAX;
     list->header->val = 0;
 
@@ -201,7 +186,8 @@ void delete(Skiplist* list, int key)
 	}
 	tmp = tmp->forward[0];
 	level = list->level;
-	if(tmp->key && tmp->key == key){
+	if(tmp->key && tmp->key == key)
+	{
 		for(i = 0; i < level; i++)
 		{
 			if((update[i]->forward[i]) != tmp) break;
@@ -242,12 +228,6 @@ void initializeFromFile(Skiplist* skiplist, char* f){
 			j++;
 			str1 = strtok(NULL, ",");
 		}
-		/*for(i=0;i<8;i++){
-
-			printf("%d\n",arr[i] );
-		}*/
-
-		/*fclose(fichier); */
 
 		for (i = 0; i < j; i++)
 	    {
@@ -328,20 +308,6 @@ int main(int argc, char* argv[])
 
 /* Answer to the last question : 
 Check how different values of p affect efficiency of search, insert, delete.
-
-We calculate the execution time with different values of p
-
-- p = RAND_MAX/2 : 
-execution time of 
-	- search : 0.000005 sec
-	- insert : 0.000001 sec
-	- delete : 0.000002 sec
-
-- p = RAND_MAX/4 : 
-execution time of 
-	- search : 0.000005 sec
-	- insert : 0.000001 sec
-	- delete : 0.000002 sec
 
 More p is small, less the skiplist will have levels.
 It is less efficient if :
